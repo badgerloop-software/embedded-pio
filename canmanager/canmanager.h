@@ -45,7 +45,7 @@ class CANManager {
          * length: Size of data in bytes
          * timeout: in milliseconds
          */ 
-        int sendMessage(int messageID, void* data, int length, int timeout = 10ms);
+        int sendMessage(int messageID, void* data, int length, int timeout = 10);
 
         /* Processes CAN (read) messages stored in messageQueue for a set duration. 
          * THIS IS THE FUNCTION TO CALL FOR PROCESSING CAN READ MESSAGES
@@ -53,7 +53,7 @@ class CANManager {
          * duration: time in milliseconds
          */
         void runQueue(int duration);
-}
+};
 
 
 #endif
