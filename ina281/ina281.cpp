@@ -3,9 +3,9 @@
 /*
     Initialize I2C bus member and parameters
 */
-INA281Driver::INA281Driver(uint8_t pinAddr, float resistance, float scaleFactor)
+INA281Driver::INA281Driver(int analogPin, float resistance, float scaleFactor)
 {
-    this->pinAddr = pinAddr;
+    this->analogPin = analogPin;
     this->resistance = resistance;
     this->scaleFactor = scaleFactor; 
 }
@@ -17,7 +17,7 @@ float INA281Driver::readCurrent()
 {
     int valueRead;
 
-    valueRead = analogRead(pinAddr);
+    valueRead = analogRead(this->analogPin);
     
 
     float measuredVoltage = (float)valueRead * 5/1023;
@@ -35,7 +35,7 @@ float INA281Driver::readCurrent()
 float INA281Driver::readVoltage()
 {
     int valueRead;
-    valueRead = analogRead(pinAddr);
+    valueRead = analogRead(this->analogPin);
 
     float measuredVoltage = (float)valueRead * 5/1023;
 
