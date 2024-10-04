@@ -3,13 +3,11 @@
 /*
     Initialize I2C bus member and parameters
 */
-INA281Driver::INA281Driver(uint8_t addr, float resistance, float scaleFactor, int Digital_Analog)
+INA281Driver::INA281Driver(uint8_t pinAddr, float resistance, float scaleFactor)
 {
-    Wire.begin();
     this->pinAddr = pinAddr;
     this->resistance = resistance;
-    this->scaleFactor = scaleFactor;
-    this->Digital_Analog = Digital_Analog; 
+    this->scaleFactor = scaleFactor; 
 }
 
 /*
@@ -17,16 +15,12 @@ INA281Driver::INA281Driver(uint8_t addr, float resistance, float scaleFactor, in
 */
 float INA281Driver::readCurrent()
 {
-    float valueRead;
+    int valueRead;
 
-    if (Digital_Analog == 1){
-        valueRead = digitalRead(pinAddr);
-    }
-    else {
-        valueRead = analogRead(pinAddr);
-    }
+    valueRead = analogRead(pinAddr);
+    
 
-    float measuredVoltage = valueRead * 3.3;
+    float measuredVoltage = (float)valueRead * 5/1023;
 
     // voltage = measuredVoltage / scaleFactor
     // current = voltage / resistance
@@ -40,16 +34,12 @@ float INA281Driver::readCurrent()
 */
 float INA281Driver::readVoltage()
 {
-    float valueRead;
+    int valueRead;
+    valueRead = analogRead(pinAddr);
 
-    if (Digital_Analog == 1){
-        valueRead = digitalRead(pinAddr);
-    }
-    else {
-        valueRead = analogRead(pinAddr);
-    }
+    float measuredVoltage = (float)valueRead * 5/1023;
 
-    float voltage = valueRead / scaleFactor;
+    float voltage = measuredVoltage / scaleFactor;
 
     return voltage;
 }

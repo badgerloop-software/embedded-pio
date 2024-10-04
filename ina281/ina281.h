@@ -14,7 +14,6 @@ class INA281Driver {
     uint8_t pinAddr;
     float resistance;
     float scaleFactor;
-    int Digital_Analog; //This was added because I did not know how to differentiate between digital and analog pins during the execution of the code.
 
  public:
 
@@ -29,7 +28,7 @@ class INA281Driver {
         Optional argument:
         scaleFactor - the factor by which to divide the pin reading to get the correct voltage
     */
-    INA281Driver(uint8_t pinAddr, float resistance, float scaleFactor = 20, int Digital_Analog);
+    INA281Driver(uint8_t pinAddr, float resistance, float scaleFactor = 20);
 
     /*
         Retrieves the current current reading
