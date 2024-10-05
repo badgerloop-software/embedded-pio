@@ -21,9 +21,8 @@ class INA281Driver {
         Creates a new INA281 Driver
 
         Constructor expects 2 arguments:
-        pinAddr - name of analog/digital pin the INA is wired to
+        analogPin - name of analog pin the INA is wired to
         resistance - resistance of the shunt resistor associated with the INA
-        Digital_Analog - 1 for digital, 0 for analog.
 
         Optional argument:
         scaleFactor - the factor by which to divide the pin reading to get the correct voltage
