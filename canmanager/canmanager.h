@@ -29,7 +29,7 @@ class CANManager {
          * frequency: Baud rate of can bus
          * rx: digital pin number to attach interrupt to
          */
-        CANManager(CAN_TypeDef* canPort, CAN_PINS pins, int frequency = DEFAULT_CAN_FREQ, uint8_t rx);
+        CANManager(CAN_TypeDef* canPort, CAN_PINS pins, uint8_t rx, int frequency = DEFAULT_CAN_FREQ);
 
         // Destructor stopping manager and freeing resources
         ~CANManager();
