@@ -34,8 +34,7 @@ float INA281Driver::readCurrent()
 */
 float INA281Driver::readVoltage()
 {
-    int valueRead;
-    valueRead = analogRead(this->analogPin);
+    int valueRead = analogRead(this->analogPin);
 
     float measuredVoltage = (float)valueRead * 3.3/1024.0;
 
