@@ -9,7 +9,7 @@
 
 typedef struct {
     uint32_t id;
-    uint8_t buf[8];  
+    uint8_t* buf;  
     uint8_t len;
 } CAN_data;
 
@@ -27,8 +27,9 @@ class CANManager {
          * canPort: choose from CAN1, CAN2, CAN3 (NOTE: see STM32_CAN library for more details)
          * pins: choose from DEF, ALT1, ALT2
          * frequency: Baud rate of can bus
+         * rx: digital pin number to attach interrupt to
          */
-        CANManager(CAN_TypeDef* canPort, CAN_PINS pins, int frequency = DEFAULT_CAN_FREQ);
+        CANManager(CAN_TypeDef* canPort, CAN_PINS pins, uint8_t rx, int frequency = DEFAULT_CAN_FREQ);
 
         // Destructor stopping manager and freeing resources
         ~CANManager();
