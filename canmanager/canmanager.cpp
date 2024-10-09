@@ -4,10 +4,11 @@
 void CANManager::readISR() {
     // Read CAN message and enqueue data
     CAN_message_t CAN_message;
+
     bool check = this->canBus.read(CAN_message);  //returns true if message is read successfully
-    
+
     if (check){
-        CAN_data toQueue= {CAN_message.id, *CAN_message.buf, CAN_message.len}; //Dereferencing CAN_message.buf to convert it to uint8_t from uint8_t*
+        CAN_data toQueue= {CAN_message.id, CAN_message.buf, CAN_message.len};
         this->messageQueue.push(toQueue);
     }
 } 
