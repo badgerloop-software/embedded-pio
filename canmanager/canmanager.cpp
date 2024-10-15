@@ -7,7 +7,7 @@ CANManager::CANManager(CAN_TypeDef* canPort, CAN_PINS pins, int frequency) : can
 }
 
 bool CANManager::sendMessage(int messageID, void* data, int length, int timeout) {
-    bool retValue = false;                  //return value of write function. False by default
+    bool retValue = false; // return value of write function. False by default
 
     // Create a CAN message that is going to be written
     CAN_message_t CAN_message;                
@@ -31,11 +31,12 @@ bool CANManager::sendMessage(int messageID, void* data, int length, int timeout)
 }
 
 void CANManager::runQueue(int duration) {
-    // Storing the time when the function is called
-    unsigned long start = millis();
     CAN_message_t msg; 
 
-    // dequeues messageQueue until the duration is reached
+    // Storing the time when the function is called
+    unsigned long start = millis();
+
+    // reads by dequeuing messages from Rx Ring buffer until the duration is reached
     while (millis() - start < duration){
         if (this->canBus.read(msg)) {
             this->readHandler(msg); //calls readHandler function to process the message              

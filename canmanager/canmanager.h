@@ -1,8 +1,6 @@
 #ifndef __CAN_MANAGER_H__
 #define __CAN_MANAGER_H__
 
-#include <memory> // need this for shared_ptr
-#include <queue>
 #include "STM32_CAN.h"
 
 #define DEFAULT_CAN_FREQ 250000     // Match Elcon charger
