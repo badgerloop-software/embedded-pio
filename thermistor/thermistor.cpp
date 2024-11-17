@@ -3,7 +3,7 @@
 /*
     Initialize all parameters and pin
 */
-Thermistor::Thermistor(const Thermistor_Constants constants, int therm_channel, float R, float vcc) : thermChannel(therm_channel) {
+Thermistor::Thermistor(const Thermistor_Constants constants, uint32_t therm_channel, float R, float vcc) : thermChannel(therm_channel) {
     this->mult_const = constants.mult_const;
     this->add_const = constants.add_const;
     this->vcc = vcc;
@@ -14,8 +14,7 @@ Thermistor::Thermistor(const Thermistor_Constants constants, int therm_channel, 
     Retrive new temperature reading
 */
 float Thermistor::get_temperature() {
-    int valueRead = readADC(this->thermChannel);
-    float therm_voltage = (float)valueRead * 3.3/1024.0;
+    float therm_voltage = readADC(this->thermChannel) * 3.3;
     float R_Therm = R / (vcc / therm_voltage - 1);
 
     return mult_const * std::log(R_Therm) + add_const;
