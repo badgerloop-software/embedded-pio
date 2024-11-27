@@ -2,6 +2,8 @@
 #define __THERMISTOR_H__
 
 #include <Wire.h>
+#include <math.h>
+#include "adc.h"
 
 /*
     Thermistor voltage reading is converted to temperature in a two step process
@@ -36,7 +38,7 @@ class Thermistor{
     float add_const;
     float vcc;
     float R;
-    int thermVoltPin;
+    uint32_t thermChannel;
 
     public:
     /*
@@ -48,7 +50,7 @@ class Thermistor{
         R: Resistance of resistor in series with thermistor
         vcc: Total voltage across R and thermistor
     */
-    Thermistor(const Thermistor_Constants constants, int therm_pin, float R = 4700, float vcc = 3.3);
+    Thermistor(const Thermistor_Constants constants, uint32_t therm_channel, float R = 4700, float vcc = 3.3);
 
     /*
         Retrives current thermistor reading

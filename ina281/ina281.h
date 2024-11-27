@@ -1,7 +1,7 @@
 #ifndef _INA281_H_
 #define _INA281_H_
 
-#include <Wire.h>
+#include "adc.h"
 
 /*
     A class which represents an instance of an INA281 Driver for measuring current across a
@@ -11,7 +11,7 @@
 */
 class INA281Driver {
  private:
-    int analogPin;
+    uint32_t channel;
     float resistance;
     float scaleFactor;
 
@@ -21,13 +21,13 @@ class INA281Driver {
         Creates a new INA281 Driver
 
         Constructor expects 2 arguments:
-        analogPin - name of analog pin the INA is wired to
+        channel - channel of the analog pin the INA is wired to
         resistance - resistance of the shunt resistor associated with the INA
 
         Optional argument:
         scaleFactor - the factor by which to divide the pin reading to get the correct voltage
     */
-    INA281Driver(int analogPin, float resistance, float scaleFactor = 20);
+    INA281Driver(uint32_t channel, float resistance, float scaleFactor = 20);
 
     /*
         Retrieves the current current reading
