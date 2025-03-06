@@ -4,6 +4,7 @@ CANManager::CANManager(CAN_TypeDef* canPort, CAN_PINS pins, int frequency) : can
     // Begin canBus and set its frequency
     this->canBus.begin();
     this->canBus.setBaudRate(frequency);
+    this->canBus.setAutoBusOffRecovery(true);
 }
 
 bool CANManager::sendMessage(int messageID, void* data, int length, int timeout) {
