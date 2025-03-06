@@ -8,6 +8,7 @@
 class CANManager {
     private:
         STM32_CAN canBus;                  // object to interface with CAN
+        int frequency;
 
     public:
         /* Constructor initializing bus and all manager functions
@@ -38,6 +39,10 @@ class CANManager {
          * duration: time in milliseconds
          */
         void runQueue(int duration);
+
+        /* Resets the CAN bus by calling end(), then calling begin().
+         */
+        void reset();
 };
 
 

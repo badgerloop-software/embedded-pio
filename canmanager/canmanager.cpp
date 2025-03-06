@@ -3,6 +3,7 @@
 CANManager::CANManager(CAN_TypeDef* canPort, CAN_PINS pins, int frequency) : canBus(canPort, pins) {                                                            
     // Begin canBus and set its frequency
     this->canBus.begin();
+    this->frequency = frequency;
     this->canBus.setBaudRate(frequency);
     this->canBus.setAutoBusOffRecovery(true);
 }
@@ -43,4 +44,11 @@ void CANManager::runQueue(int duration) {
             this->readHandler(msg); //calls readHandler function to process the message              
         }
     }   
+}
+
+void CANManager::reset() {
+    this->canBus.end();
+    this->canBus.begin();
+    this->canBus.setBaudRate(this->frequency);
+    this->canBus.setAutoBusOffRecovery(true);
 }
