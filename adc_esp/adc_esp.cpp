@@ -4,6 +4,8 @@
 // Calibration characteristics
 static esp_adc_cal_characteristics_t adc_chars;
 
+adc_bits_width_t adc2_width = ADC_WIDTH_BIT_12;  // Since ADC2 can't be configured directly, we set the width here
+
 esp_err_t esp32_adc_init(ESP32_ADC_Config* config) {
     esp_err_t ret = ESP_OK;
     
@@ -11,6 +13,11 @@ esp_err_t esp32_adc_init(ESP32_ADC_Config* config) {
     if (config->unit == ADC_UNIT_1) {
         ret = adc1_config_width(config->width);
         if (ret != ESP_OK) return ret;
+    }
+    else if (config->unit == ADC_UNIT_2) {
+        adc2_width = config->width;
+    } else {
+        return ESP_ERR_INVALID_ARG;
     }
     
     // Characterize ADC for calibration
@@ -48,7 +55,7 @@ int esp32_adc_read_raw(adc_unit_t unit, adc_channel_t channel) {
         raw_value = adc1_get_raw(adc1_channel);
     } else if (unit == ADC_UNIT_2) {
         // ADC2 can't be used when Wi-Fi is active
-        esp_err_t ret = adc2_get_raw((adc2_channel_t)channel, ADC_WIDTH_BIT_12, &raw_value);
+        esp_err_t ret = adc2_get_raw((adc2_channel_t)channel, adc2_width, &raw_value);
         if (ret != ESP_OK) {
             return -1;
         }
