@@ -15,7 +15,7 @@ bool ESP32CANManager::sendMessage(uint16_t id, void* data, uint8_t length, uint3
 	obdFrame.extd = 0; // use non extended 11 bit ID
 	obdFrame.data_length_code = length;
     memcpy(obdFrame.data, data, length);
-    printf("obdFrame: %x\n", obdFrame.data[0]);
+    // printf("obdFrame: %x\n", obdFrame.data[0]);
 
     uint32_t start = millis();
     bool send_success = false;
