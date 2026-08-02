@@ -8,7 +8,7 @@
 
 class ESP32CANManager {
     public:
-        /* frequency: in kHz 
+        /* frequency: in kHz
          * tx: pin number
          * rx: pin number
          * tx_queue: number of messages in TX queue
@@ -28,15 +28,15 @@ class ESP32CANManager {
          * data: Payload array
          * length: Size of data in bytes
          * timeout: in milliseconds
-         * 
+         *
          * @return true if message sent successfully, false otherwise
-         */ 
+         */
         bool sendMessage(uint16_t id, void* data, uint8_t length, uint32_t timeout = 1);
 
 
-        /* Processes CAN (read) messages stored in messageQueue for a set duration. 
+        /* Processes CAN (read) messages stored in messageQueue for a set duration.
          * THIS IS THE FUNCTION TO CALL FOR PROCESSING CAN READ MESSAGES
-         * 
+         *
          * duration: time in milliseconds
          */
         void runQueue(uint16_t duration);

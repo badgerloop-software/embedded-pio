@@ -7,7 +7,8 @@
 
 class CANManager {
     private:
-        STM32_CAN canBus;                  // object to interface with CAN
+        STM32_CAN canBus;
+        int frequency;
 
     public:
         /* Constructor initializing bus and all manager functions
@@ -29,15 +30,19 @@ class CANManager {
          * data: Payload array
          * length: Size of data in bytes
          * timeout: in milliseconds
-         */ 
+         */
         bool sendMessage(int messageID, void* data, int length, int timeout = 10);
 
-        /* Processes CAN (read) messages stored in messageQueue for a set duration. 
+        /* Processes CAN (read) messages stored in messageQueue for a set duration.
          * THIS IS THE FUNCTION TO CALL FOR PROCESSING CAN READ MESSAGES
-         * 
+         *
          * duration: time in milliseconds
          */
         void runQueue(int duration);
+
+        /* Resets the CAN bus by calling end(), then calling begin().
+         */
+        void reset();
 };
 
 

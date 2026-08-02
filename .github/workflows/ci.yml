@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [restructuring/ci, restructuring, main]
+  pull_request:
+    branches: [restructuring/ci, restructuring, main]
+
+jobs:
+  contract-tests:
+    name: CAN contract tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test deps
+        run: pip install -r tests/requirements.txt
+      - name: Run pytest
+        working-directory: tests
+        run: pytest -q
+
+  consumer-matrix:
+    name: Consumer build (${{ matrix.repo }})
+    needs: contract-tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - sc2-powertrain
+          - sc2-pdc
+          - sc2-steering-wheel
+          - sc2-mppt
+          - sc2-lighting
+    steps:
+      - name: Checkout embedded-pio under test
+        uses: actions/checkout@v4
+        with:
+          path: embedded-pio
+
+      - name: Checkout consumer (prefer restructuring/ci)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO="https://x-access-token:${GH_TOKEN}@github.com/badgerloop-software/${{ matrix.repo }}.git"
+          if git ls-remote --exit-code --heads "$REPO" restructuring/ci >/dev/null 2>&1; then
+            git clone --depth 1 -b restructuring/ci --recurse-submodules "$REPO" consumer
+          else
+            git clone --depth 1 -b main --recurse-submodules "$REPO" consumer
+          fi
+
+      - name: Point consumer submodule at this commit
+        working-directory: consumer
+        run: |
+          rm -rf embedded-pio
+          cp -a "${GITHUB_WORKSPACE}/embedded-pio" embedded-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO
+        run: pip install -U platformio
+
+      - name: Build firmware
+        working-directory: consumer
+        run: pio run
