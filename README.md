@@ -34,3 +34,19 @@ pytest
 | `test_vehicle.py` | Multi-board scenarios |
 
 Board compile checks stay in each board repo (`pio run`).
+
+## CI notes (private org repos)
+
+Contract tests (`pytest`) only need this repo.
+
+The consumer matrix builds each private `sc2-*` board against this commit. That requires
+read access to those repos:
+
+1. **Preferred:** org or repo secret `SC2_CI_TOKEN` — a fine-grained PAT with
+   **Contents: Read** on `sc2-powertrain`, `sc2-pdc`, `sc2-steering-wheel`,
+   `sc2-mppt`, and `sc2-lighting`.
+2. **Or:** GitHub org → Settings → Actions → General → enable access to other
+   private repositories in the org (so `GITHUB_TOKEN` can clone them).
+
+Without one of those, the matrix clone step fails with an access error even for
+org members running CI — the default job token only covers `embedded-pio`.

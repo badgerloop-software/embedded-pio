@@ -21,6 +21,10 @@ jobs:
         working-directory: tests
         run: pytest -q
 
+  # Builds each board against this embedded-pio commit.
+  # Needs read access to private sc2-* repos (same GitHub org).
+  # Set repo/org secret SC2_CI_TOKEN to a PAT with Contents: Read on those repos,
+  # or enable org Actions access so github.token can read sibling private repos.
   consumer-matrix:
     name: Consumer build (${{ matrix.repo }})
     needs: contract-tests
@@ -40,19 +44,35 @@ jobs:
         with:
           path: embedded-pio
 
-      - name: Checkout consumer (prefer restructuring/ci)
+      - name: Checkout consumer board
         env:
-          GH_TOKEN: ${{ github.token }}
+          # Prefer a PAT that can read private org board repos.
+          GH_TOKEN: ${{ secrets.SC2_CI_TOKEN || github.token }}
         run: |
           set -euo pipefail
           REPO="https://x-access-token:${GH_TOKEN}@github.com/badgerloop-software/${{ matrix.repo }}.git"
-          if git ls-remote --exit-code --heads "$REPO" restructuring/ci >/dev/null 2>&1; then
-            git clone --depth 1 -b restructuring/ci --recurse-submodules "$REPO" consumer
+
+          # Do not --recurse-submodules: .gitmodules uses SSH URLs and Actions
+          # has no deploy key. We replace embedded-pio in the next step anyway.
+          clone_branch() {
+            git clone --depth 1 -b "$1" "$REPO" consumer
+          }
+
+          if git ls-remote --exit-code --heads "$REPO" restructuring/firmware >/dev/null 2>&1; then
+            clone_branch restructuring/firmware
+          elif git ls-remote --exit-code --heads "$REPO" restructuring/ci >/dev/null 2>&1; then
+            clone_branch restructuring/ci
+          elif git ls-remote --exit-code --heads "$REPO" main >/dev/null 2>&1; then
+            clone_branch main
           else
-            git clone --depth 1 -b main --recurse-submodules "$REPO" consumer
+            echo "::error::Cannot list branches for badgerloop-software/${{ matrix.repo }}."
+            echo "CI needs read access to private org repos."
+            echo "Add secret SC2_CI_TOKEN (PAT with Contents: Read on sc2-* repos),"
+            echo "or enable org Actions access to other private repositories."
+            exit 1
           fi
 
-      - name: Point consumer submodule at this commit
+      - name: Point consumer at this embedded-pio commit
         working-directory: consumer
         run: |
           rm -rf embedded-pio
