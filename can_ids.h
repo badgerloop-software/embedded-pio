@@ -13,6 +13,7 @@
 #define SC2_CAN_MPPT_OV_RESET_ID        0x051u
 #define SC2_CAN_BMS_PACK_ID             0x101u
 #define SC2_CAN_BPS_LIGHT_ID            0x103u
+#define SC2_CAN_BMS_CHARGE_LIMIT_ID     0x103u /* same arbitration ID; BMS charge limit RX */
 #define SC2_CAN_BPS_TEMPERATURE_ID      0x108u
 #define SC2_CAN_BPS_ELECTRICAL_ID       0x109u
 
@@ -35,10 +36,16 @@
 #define SC2_CAN_STEERING_DRIVE_MODE_ID  0x303u
 #define SC2_CAN_STEERING_HAZARD_ID      0x304u
 
-/* MPPT base IDs (string telem: 0x402 + 5*i) */
+/* MPPT TX: boost/mode then per-string blocks of 5 IDs starting at 0x402 */
 #define SC2_CAN_MPPT_BOOST_ID           0x400u
 #define SC2_CAN_MPPT_MODE_ID            0x401u
 #define SC2_CAN_MPPT_STRING0_V_ID       0x402u
+#define SC2_CAN_MPPT_STRING_STRIDE      5u
+#define SC2_CAN_MPPT_FIELD_V            0u
+#define SC2_CAN_MPPT_FIELD_I            1u
+#define SC2_CAN_MPPT_FIELD_TEMP         2u
+#define SC2_CAN_MPPT_FIELD_DUTY         3u
+#define SC2_CAN_MPPT_FIELD_TARGET       4u
 
 /* Powertrain TX */
 #define SC2_CAN_PT_I_12V_ID             0x500u
@@ -61,5 +68,9 @@
 #define SC2_CAN_PT_FAULT_MASK           0x01u
 
 #define SC2_CAN_BPS_PACK_CURRENT_ZERO   0x8000u
+
+/* Per-string MPPT telem ID: base 0x402 + stride*i + field */
+#define SC2_CAN_MPPT_STRING_ID(string_index, field) \
+    (SC2_CAN_MPPT_STRING0_V_ID + (SC2_CAN_MPPT_STRING_STRIDE * (string_index)) + (field))
 
 #endif

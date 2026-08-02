@@ -64,7 +64,8 @@ def bit_set(value: int, bit: int) -> bool:
 
 
 def mppt_string_voltage_id(index: int) -> int:
-    return CAN["SC2_CAN_MPPT_STRING0_V_ID"] + 5 * index
+    stride = CAN.get("SC2_CAN_MPPT_STRING_STRIDE", 5)
+    return CAN["SC2_CAN_MPPT_STRING0_V_ID"] + stride * index
 
 
 def decode_cell_voltage_v(raw_be: bytes) -> float:

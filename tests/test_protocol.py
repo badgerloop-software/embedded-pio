@@ -45,4 +45,6 @@ def test_steering_digital_bits():
 def test_mppt_string_offsets_do_not_collide():
     ids = [mppt_string_voltage_id(i) for i in range(3)]
     assert len(ids) == len(set(ids))
-    assert ids[1] - ids[0] == 5
+    stride = CAN["SC2_CAN_MPPT_STRING_STRIDE"]
+    assert ids[1] - ids[0] == stride
+    assert CAN["SC2_CAN_MPPT_FIELD_TARGET"] == 4
