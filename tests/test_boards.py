@@ -14,6 +14,9 @@ import pytest
 
 from load_can_ids import CAN
 from conftest import (
+    CELL_V_MAX,
+    CELL_V_MIN,
+    THROTTLE_SENT_MAX,
     bit_set,
     decode_cell_voltage_v,
     mppt_string_voltage_id,
@@ -25,11 +28,6 @@ from conftest import (
     unpack_float,
     unpack_u16,
 )
-
-
-THROTTLE_SENT_MAX = 4095
-CELL_V_MIN = 2.52
-CELL_V_MAX = 4.18
 
 
 def drain(rx, count=8, timeout=0.1):

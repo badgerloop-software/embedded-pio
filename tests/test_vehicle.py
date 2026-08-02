@@ -15,11 +15,8 @@ from conftest import (
     steering_digital,
     unpack_float,
 )
+from conftest import CELL_V_MAX, THROTTLE_SENT_MAX
 from test_boards import drain
-
-
-THROTTLE_SENT_MAX = 4095
-CELL_V_MAX = 4.18
 
 
 def test_drive_blink_fault_vehicle(can_pair):

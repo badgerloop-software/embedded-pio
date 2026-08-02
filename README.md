@@ -32,6 +32,7 @@ pytest
 | `test_protocol.py` | IDs and packing from `can_ids.h` |
 | `test_boards.py` | Per-board bus behavior |
 | `test_vehicle.py` | Multi-board scenarios |
+| `test_smoke_car.py` | Drive / lights / BPS contracts that must not break before shop testing |
 
 Board compile checks stay in each board repo (`pio run`).
 

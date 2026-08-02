@@ -49,18 +49,69 @@ def pack_be_u16(value: int) -> bytes:
     return struct.pack(">H", value & 0xFFFF)
 
 
+# Bit layouts must match steering can_steering.cpp / PDC Digital_Data / lighting BIT_OFF*.
+STEERING_BIT_HEADLIGHT = 0
+STEERING_BIT_LEFT = 1
+STEERING_BIT_RIGHT = 2
+STEERING_BIT_DIRECTION = 3
+STEERING_BIT_HORN = 4
+
+PDC_BIT_DIRECTION = 0  # reverse lamp on rear lighting
+PDC_BIT_MC_SPEED = 1
+PDC_BIT_ECO = 2
+PDC_BIT_MCU_MC_ON = 3
+PDC_BIT_PARK_BRAKE = 4
+PDC_BIT_BRAKE_LED = 5  # brake lamp on lighting boards
+
+# Must match FAULT_CLEAR_PAYLOAD in sc2-powertrain can_powertrain.cpp
+FAULT_CLEAR_PAYLOAD = bytes([0x03, 0x7F, 0x20, 0x22, 0x00, 0x00, 0x00, 0x00])
+
+CELL_V_MIN = 2.52
+CELL_V_MAX = 4.18
+THROTTLE_SENT_MAX = 4095
+
+
 def steering_digital(*, headlight=0, left=0, right=0, direction=0, horn=0) -> int:
     return (
-        (1 if headlight else 0) << 0
-        | (1 if left else 0) << 1
-        | (1 if right else 0) << 2
-        | (1 if direction else 0) << 3
-        | (1 if horn else 0) << 4
+        (1 if headlight else 0) << STEERING_BIT_HEADLIGHT
+        | (1 if left else 0) << STEERING_BIT_LEFT
+        | (1 if right else 0) << STEERING_BIT_RIGHT
+        | (1 if direction else 0) << STEERING_BIT_DIRECTION
+        | (1 if horn else 0) << STEERING_BIT_HORN
+    )
+
+
+def pdc_digital(
+    *,
+    direction=0,
+    mc_speed=0,
+    eco=0,
+    mcu_mc_on=0,
+    park_brake=0,
+    brake_led=0,
+) -> int:
+    return (
+        (1 if direction else 0) << PDC_BIT_DIRECTION
+        | (1 if mc_speed else 0) << PDC_BIT_MC_SPEED
+        | (1 if eco else 0) << PDC_BIT_ECO
+        | (1 if mcu_mc_on else 0) << PDC_BIT_MCU_MC_ON
+        | (1 if park_brake else 0) << PDC_BIT_PARK_BRAKE
+        | (1 if brake_led else 0) << PDC_BIT_BRAKE_LED
     )
 
 
 def bit_set(value: int, bit: int) -> bool:
     return bool(value & (1 << bit))
+
+
+def cell_voltages_fault(hi_v: float, lo_v: float) -> bool:
+    return hi_v > CELL_V_MAX or hi_v < CELL_V_MIN or lo_v > CELL_V_MAX or lo_v < CELL_V_MIN
+
+
+def bps_electrical_payload(*, hi_raw: int, lo_raw: int, current_raw: int | None = None) -> bytes:
+    if current_raw is None:
+        current_raw = CAN["SC2_CAN_BPS_PACK_CURRENT_ZERO"]
+    return pack_be_u16(hi_raw) + pack_be_u16(lo_raw) + pack_be_u16(current_raw)
 
 
 def mppt_string_voltage_id(index: int) -> int:
