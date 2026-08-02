@@ -1,22 +1,25 @@
 # embedded-pio
 
-Shared PlatformIO libraries for Badgerloop SC2 firmware.
+Shared PlatformIO libraries for Badger Solar Racing SC2 firmware.
 
-## What's here
+## Contents
 
 | Path | Role |
 |------|------|
 | `can_ids.h` | Shared CAN IDs (single source of truth) |
-| `canmanager/` / `esp32canmanager/` | Hardware CAN managers |
-| `STM32_CAN/` | Vendored STM32 CAN driver (optional; boards may use `lib_deps`) |
+| `canmanager/` | STM32 CAN manager |
+| `esp32canmanager/` | ESP32 TWAI CAN manager |
+| `STM32_CAN/` | Vendored STM32 CAN driver |
 | `adc/` `dac/` `PID/` `ina281/` `thermistor/` | Peripheral helpers |
-| `tests/` | pytest + python-can contract tests (no g++ required) |
+| `tests/` | pytest + python-can contract tests |
 
 ## Pin policy
 
-See [PIN_POLICY.md](PIN_POLICY.md). Consumers track `main`.
+See [PIN_POLICY.md](PIN_POLICY.md). Board repos pin a commit of this submodule; prefer `main` once restructuring lands.
 
-## Tests (local, same as CI)
+## Tests
+
+Same suite CI runs:
 
 ```bash
 cd tests
@@ -24,8 +27,10 @@ pip install -r requirements.txt
 pytest
 ```
 
-- `test_protocol.py` — ID/packing contracts from `can_ids.h`
-- `test_boards.py` — per-board bus behavior
-- `test_vehicle.py` — multi-board scenario
+| File | Covers |
+|------|--------|
+| `test_protocol.py` | IDs and packing from `can_ids.h` |
+| `test_boards.py` | Per-board bus behavior |
+| `test_vehicle.py` | Multi-board scenarios |
 
-Firmware compile checks stay in each board repo (`pio run`).
+Board compile checks stay in each board repo (`pio run`).

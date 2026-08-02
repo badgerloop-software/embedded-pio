@@ -1,15 +1,14 @@
 # embedded-pio pin policy
 
-All SC2 board repositories must pin this submodule to a commit on **`main`**.
+SC2 board repos pin this submodule to a known commit. After restructuring merges, that tip should be `main`.
 
-Do not track long-lived fork branches (`STM32_CAN`, `ESP32-CAN`, etc.) from consumer repos.
-Merge hardware-specific needs into `main` instead.
+Do not point consumers at long-lived fork branches. Land shared changes here, then bump the submodule SHA in every board that uses them:
 
-When publishing a breaking change:
+- `sc2-powertrain`
+- `sc2-pdc`
+- `sc2-steering-wheel`
+- `sc2-mppt`
+- `sc2-lighting`
+- `sc2-template` (starter for new boards)
 
-1. Land it on `embedded-pio` `main` with green self-tests and consumer matrix CI.
-2. Bump the submodule SHA in all five consumers in the same change window:
-   `sc2-powertrain`, `sc2-pdc`, `sc2-steering-wheel`, `sc2-mppt`, `sc2-lighting`.
-
-`STM32_CAN` is vendored under `STM32_CAN/` for boards that do not pull it via `lib_deps`.
-Boards may still declare `pazi88/STM32_CAN` in `lib_deps`; prefer one source per project to avoid duplicate symbols.
+`STM32_CAN` is vendored under `STM32_CAN/`. Prefer that path (or Registry `pazi88/STM32_CAN`), not both in one project.
