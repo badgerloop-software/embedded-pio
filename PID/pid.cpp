@@ -47,7 +47,7 @@
 /**
  * Includes
  */
-#include "PID.h"
+#include "pid.h"
 
 PID::PID(float Kc, float tauI, float tauD, float interval) {
 
