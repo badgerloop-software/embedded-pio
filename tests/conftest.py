@@ -110,13 +110,13 @@ def cell_voltages_fault(hi_v: float, lo_v: float) -> bool:
 
 def bps_electrical_payload(*, hi_raw: int, lo_raw: int, current_raw: int | None = None) -> bytes:
     if current_raw is None:
-        current_raw = CAN["SC2_CAN_BPS_PACK_CURRENT_ZERO"]
+        current_raw = CAN["CAN_BPS_PACK_CURRENT_ZERO"]
     return pack_be_u16(hi_raw) + pack_be_u16(lo_raw) + pack_be_u16(current_raw)
 
 
 def mppt_string_voltage_id(index: int) -> int:
-    stride = CAN.get("SC2_CAN_MPPT_STRING_STRIDE", 5)
-    return CAN["SC2_CAN_MPPT_STRING0_V_ID"] + stride * index
+    stride = CAN.get("CAN_MPPT_STRING_STRIDE", 5)
+    return CAN["CAN_MPPT_STRING0_V"] + stride * index
 
 
 def decode_cell_voltage_v(raw_be: bytes) -> float:
@@ -125,5 +125,5 @@ def decode_cell_voltage_v(raw_be: bytes) -> float:
 
 def decode_pack_current_a(raw_be: bytes) -> float:
     raw = int.from_bytes(raw_be[:2], "big")
-    zero = CAN["SC2_CAN_BPS_PACK_CURRENT_ZERO"]
+    zero = CAN["CAN_BPS_PACK_CURRENT_ZERO"]
     return abs(raw - zero) * 0.1

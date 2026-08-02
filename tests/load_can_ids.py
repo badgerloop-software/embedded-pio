@@ -7,7 +7,7 @@ from pathlib import Path
 
 _HEADER = Path(__file__).resolve().parents[1] / "can_ids.h"
 _DEFINE_RE = re.compile(
-    r"^\s*#define\s+(SC2_CAN_\w+)\s+(0x[0-9A-Fa-f]+u?|\d+u?)\s*$"
+    r"^\s*#define\s+(CAN_\w+)\s+(0x[0-9A-Fa-f]+u?|\d+u?)\s*$"
 )
 
 
@@ -20,7 +20,7 @@ def load_can_ids(header: Path = _HEADER) -> dict[str, int]:
             continue
         name, raw = match.group(1), match.group(2).rstrip("uU")
         ids[name] = int(raw, 0)
-    if "SC2_CAN_STEERING_THROTTLE_ID" not in ids:
+    if "CAN_STEERING_THROTTLE" not in ids:
         raise RuntimeError(f"failed to parse CAN IDs from {header}")
     return ids
 

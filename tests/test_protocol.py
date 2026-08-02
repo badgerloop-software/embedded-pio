@@ -15,10 +15,10 @@ from conftest import (
 
 
 def test_core_ids():
-    assert CAN["SC2_CAN_STEERING_DIGITAL_ID"] == 0x300
-    assert CAN["SC2_CAN_STEERING_DRIVE_MODE_ID"] == 0x303
-    assert CAN["SC2_CAN_PT_FAULT_STATUS_ID"] == 0x505
-    assert CAN["SC2_CAN_FAULT_CLEAR_ID"] == 0x7EB
+    assert CAN["CAN_STEERING_DIGITAL"] == 0x300
+    assert CAN["CAN_STEERING_DRIVE_MODE"] == 0x303
+    assert CAN["CAN_PT_FAULT_STATUS"] == 0x505
+    assert CAN["CAN_FAULT_CLEAR"] == 0x7EB
 
 
 def test_float_roundtrip():
@@ -31,7 +31,7 @@ def test_cell_voltage_decode():
 
 def test_pack_current_midscale_is_zero():
     assert decode_pack_current_a(
-        pack_be_u16(CAN["SC2_CAN_BPS_PACK_CURRENT_ZERO"])
+        pack_be_u16(CAN["CAN_BPS_PACK_CURRENT_ZERO"])
     ) == pytest.approx(0.0)
 
 
@@ -45,6 +45,6 @@ def test_steering_digital_bits():
 def test_mppt_string_offsets_do_not_collide():
     ids = [mppt_string_voltage_id(i) for i in range(3)]
     assert len(ids) == len(set(ids))
-    stride = CAN["SC2_CAN_MPPT_STRING_STRIDE"]
+    stride = CAN["CAN_MPPT_STRING_STRIDE"]
     assert ids[1] - ids[0] == stride
-    assert CAN["SC2_CAN_MPPT_FIELD_TARGET"] == 4
+    assert CAN["CAN_MPPT_FIELD_TARGET"] == 4

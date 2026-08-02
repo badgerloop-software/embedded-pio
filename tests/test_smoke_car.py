@@ -51,30 +51,30 @@ def _drain(rx, count=12, timeout=0.1):
 
 def test_critical_ids_and_dlcs_frozen():
     """IDs and DLCs every board depends on for drive / lights / BPS."""
-    assert CAN["SC2_CAN_STEERING_DIGITAL_ID"] == 0x300
-    assert CAN["SC2_CAN_STEERING_REGEN_ID"] == 0x301
-    assert CAN["SC2_CAN_STEERING_THROTTLE_ID"] == 0x302
-    assert CAN["SC2_CAN_STEERING_DRIVE_MODE_ID"] == 0x303
-    assert CAN["SC2_CAN_STEERING_HAZARD_ID"] == 0x304
+    assert CAN["CAN_STEERING_DIGITAL"] == 0x300
+    assert CAN["CAN_STEERING_REGEN"] == 0x301
+    assert CAN["CAN_STEERING_THROTTLE"] == 0x302
+    assert CAN["CAN_STEERING_DRIVE_MODE"] == 0x303
+    assert CAN["CAN_STEERING_HAZARD"] == 0x304
 
-    assert CAN["SC2_CAN_PDC_DIGITAL_ID"] == 0x207
-    assert CAN["SC2_CAN_PDC_MPH_ID"] == 0x208
-    assert CAN["SC2_CAN_PDC_ACC_OUT_ID"] == 0x200
+    assert CAN["CAN_PDC_DIGITAL"] == 0x207
+    assert CAN["CAN_PDC_MPH"] == 0x208
+    assert CAN["CAN_PDC_ACC_OUT"] == 0x200
 
-    assert CAN["SC2_CAN_BPS_TEMPERATURE_ID"] == 0x108
-    assert CAN["SC2_CAN_BPS_ELECTRICAL_ID"] == 0x109
-    assert CAN["SC2_CAN_PT_FAULT_STATUS_ID"] == 0x505
-    assert CAN["SC2_CAN_FAULT_CLEAR_ID"] == 0x7EB
-    assert CAN["SC2_CAN_LIGHTING_HEARTBEAT_ID"] == 0x700
+    assert CAN["CAN_BPS_TEMPERATURE"] == 0x108
+    assert CAN["CAN_BPS_ELECTRICAL"] == 0x109
+    assert CAN["CAN_PT_FAULT_STATUS"] == 0x505
+    assert CAN["CAN_FAULT_CLEAR"] == 0x7EB
+    assert CAN["CAN_LIGHTING_HEARTBEAT"] == 0x700
 
-    assert CAN["SC2_CAN_BPS_TEMPERATURE_DLC"] == 4
-    assert CAN["SC2_CAN_BPS_ELECTRICAL_DLC"] == 6
-    assert CAN["SC2_CAN_PT_FAULT_STATUS_DLC"] == 1
-    assert CAN["SC2_CAN_FAULT_CLEAR_DLC"] == 8
+    assert CAN["CAN_BPS_TEMPERATURE_DLC"] == 4
+    assert CAN["CAN_BPS_ELECTRICAL_DLC"] == 6
+    assert CAN["CAN_PT_FAULT_STATUS_DLC"] == 1
+    assert CAN["CAN_FAULT_CLEAR_DLC"] == 8
 
-    assert CAN["SC2_CAN_DRIVE_MODE_ECO"] == 0
-    assert CAN["SC2_CAN_DRIVE_MODE_PWR"] == 1
-    assert CAN["SC2_CAN_PT_FAULT_MASK"] == 0x01
+    assert CAN["CAN_DRIVE_MODE_ECO"] == 0
+    assert CAN["CAN_DRIVE_MODE_PWR"] == 1
+    assert CAN["CAN_PT_FAULT_MASK"] == 0x01
 
 
 def test_command_families_do_not_overlap():
@@ -98,30 +98,30 @@ def test_command_families_do_not_overlap():
 
 def test_steering_to_pdc_throttle_and_drive_mode(can_pair):
     tx, rx = can_pair
-    send(tx, CAN["SC2_CAN_STEERING_THROTTLE_ID"], pack_u16(THROTTLE_SENT_MAX // 2))
-    send(tx, CAN["SC2_CAN_STEERING_DRIVE_MODE_ID"], bytes([CAN["SC2_CAN_DRIVE_MODE_ECO"]]))
-    send(tx, CAN["SC2_CAN_STEERING_REGEN_ID"], pack_float(0.25))
+    send(tx, CAN["CAN_STEERING_THROTTLE"], pack_u16(THROTTLE_SENT_MAX // 2))
+    send(tx, CAN["CAN_STEERING_DRIVE_MODE"], bytes([CAN["CAN_DRIVE_MODE_ECO"]]))
+    send(tx, CAN["CAN_STEERING_REGEN"], pack_float(0.25))
 
     acc = None
     eco = None
     regen = None
     for msg in _drain(rx, count=6):
         data = bytes(msg.data)
-        if msg.arbitration_id == CAN["SC2_CAN_STEERING_THROTTLE_ID"] and len(data) >= 2:
+        if msg.arbitration_id == CAN["CAN_STEERING_THROTTLE"] and len(data) >= 2:
             acc = min(unpack_u16(data) / THROTTLE_SENT_MAX, 1.0)
-        elif msg.arbitration_id == CAN["SC2_CAN_STEERING_DRIVE_MODE_ID"] and data:
-            eco = data[0] == CAN["SC2_CAN_DRIVE_MODE_ECO"]
-        elif msg.arbitration_id == CAN["SC2_CAN_STEERING_REGEN_ID"] and len(data) >= 4:
+        elif msg.arbitration_id == CAN["CAN_STEERING_DRIVE_MODE"] and data:
+            eco = data[0] == CAN["CAN_DRIVE_MODE_ECO"]
+        elif msg.arbitration_id == CAN["CAN_STEERING_REGEN"] and len(data) >= 4:
             regen = unpack_float(data)
 
     assert acc == pytest.approx(0.5, abs=0.02)
     assert eco is True
     assert regen == pytest.approx(0.25)
 
-    send(tx, CAN["SC2_CAN_STEERING_DRIVE_MODE_ID"], bytes([CAN["SC2_CAN_DRIVE_MODE_PWR"]]))
+    send(tx, CAN["CAN_STEERING_DRIVE_MODE"], bytes([CAN["CAN_DRIVE_MODE_PWR"]]))
     msg = rx.recv(timeout=0.2)
     assert msg is not None
-    assert msg.data[0] == CAN["SC2_CAN_DRIVE_MODE_PWR"]
+    assert msg.data[0] == CAN["CAN_DRIVE_MODE_PWR"]
 
 
 # ------------- STEERING / PDC → LIGHTING -------------
@@ -131,7 +131,7 @@ def test_steering_digital_bits_for_lights(can_pair):
     tx, rx = can_pair
     send(
         tx,
-        CAN["SC2_CAN_STEERING_DIGITAL_ID"],
+        CAN["CAN_STEERING_DIGITAL"],
         bytes([steering_digital(headlight=1, left=1, right=0)]),
     )
     msg = rx.recv(timeout=0.2)
@@ -145,10 +145,10 @@ def test_steering_digital_bits_for_lights(can_pair):
 def test_hazards_frame_and_both_blink_bits(can_pair):
     """Hazards: dedicated 0x304 plus both blink bits phased on 0x300."""
     tx, rx = can_pair
-    send(tx, CAN["SC2_CAN_STEERING_HAZARD_ID"], bytes([1]))
+    send(tx, CAN["CAN_STEERING_HAZARD"], bytes([1]))
     send(
         tx,
-        CAN["SC2_CAN_STEERING_DIGITAL_ID"],
+        CAN["CAN_STEERING_DIGITAL"],
         bytes([steering_digital(left=1, right=1)]),
     )
 
@@ -156,9 +156,9 @@ def test_hazards_frame_and_both_blink_bits(can_pair):
     both_blink = False
     for msg in _drain(rx, count=4):
         data = bytes(msg.data)
-        if msg.arbitration_id == CAN["SC2_CAN_STEERING_HAZARD_ID"] and data:
+        if msg.arbitration_id == CAN["CAN_STEERING_HAZARD"] and data:
             hazard = bool(data[0])
-        elif msg.arbitration_id == CAN["SC2_CAN_STEERING_DIGITAL_ID"] and data:
+        elif msg.arbitration_id == CAN["CAN_STEERING_DIGITAL"] and data:
             both_blink = bit_set(data[0], STEERING_BIT_LEFT) and bit_set(
                 data[0], STEERING_BIT_RIGHT
             )
@@ -172,7 +172,7 @@ def test_pdc_brake_and_reverse_bits_for_lights(can_pair):
     tx, rx = can_pair
     send(
         tx,
-        CAN["SC2_CAN_PDC_DIGITAL_ID"],
+        CAN["CAN_PDC_DIGITAL"],
         bytes([pdc_digital(direction=1, brake_led=1)]),
     )
     msg = rx.recv(timeout=0.2)
@@ -195,8 +195,8 @@ def test_bps_healthy_cells_are_not_a_fault():
 def test_bps_overvolt_is_a_fault_and_status_shape(can_pair):
     tx, rx = can_pair
     payload = bps_electrical_payload(hi_raw=45000, lo_raw=33000)  # 4.5 V / 3.3 V
-    assert len(payload) == CAN["SC2_CAN_BPS_ELECTRICAL_DLC"]
-    send(tx, CAN["SC2_CAN_BPS_ELECTRICAL_ID"], payload)
+    assert len(payload) == CAN["CAN_BPS_ELECTRICAL_DLC"]
+    send(tx, CAN["CAN_BPS_ELECTRICAL"], payload)
 
     msg = rx.recv(timeout=0.2)
     assert msg is not None
@@ -205,25 +205,25 @@ def test_bps_overvolt_is_a_fault_and_status_shape(can_pair):
     lo = decode_cell_voltage_v(data[2:4])
     assert cell_voltages_fault(hi, lo) is True
 
-    send(tx, CAN["SC2_CAN_PT_FAULT_STATUS_ID"], bytes([CAN["SC2_CAN_PT_FAULT_MASK"]]))
+    send(tx, CAN["CAN_PT_FAULT_STATUS"], bytes([CAN["CAN_PT_FAULT_MASK"]]))
     status = rx.recv(timeout=0.2)
     assert status is not None
-    assert status.dlc == CAN["SC2_CAN_PT_FAULT_STATUS_DLC"]
-    assert status.data[0] & CAN["SC2_CAN_PT_FAULT_MASK"]
+    assert status.dlc == CAN["CAN_PT_FAULT_STATUS_DLC"]
+    assert status.data[0] & CAN["CAN_PT_FAULT_MASK"]
 
 
 def test_fault_clear_command_shape(can_pair):
     tx, rx = can_pair
-    assert len(FAULT_CLEAR_PAYLOAD) == CAN["SC2_CAN_FAULT_CLEAR_DLC"]
-    send(tx, CAN["SC2_CAN_FAULT_CLEAR_ID"], FAULT_CLEAR_PAYLOAD)
+    assert len(FAULT_CLEAR_PAYLOAD) == CAN["CAN_FAULT_CLEAR_DLC"]
+    send(tx, CAN["CAN_FAULT_CLEAR"], FAULT_CLEAR_PAYLOAD)
 
     msg = rx.recv(timeout=0.2)
     assert msg is not None
-    assert msg.arbitration_id == CAN["SC2_CAN_FAULT_CLEAR_ID"]
+    assert msg.arbitration_id == CAN["CAN_FAULT_CLEAR"]
     assert bytes(msg.data) == FAULT_CLEAR_PAYLOAD
 
     # Wrong length or bytes must not look like a valid clear.
-    send(tx, CAN["SC2_CAN_FAULT_CLEAR_ID"], bytes([0xFF]) * 8)
+    send(tx, CAN["CAN_FAULT_CLEAR"], bytes([0xFF]) * 8)
     bad = rx.recv(timeout=0.2)
     assert bad is not None
     assert bytes(bad.data) != FAULT_CLEAR_PAYLOAD
@@ -236,20 +236,20 @@ def test_mppt_string_block_stays_below_powertrain():
     """3-string board telem must not collide with powertrain 0x500+."""
     num_arrays = 3
     last_id = (
-        mppt_string_voltage_id(num_arrays - 1) + CAN["SC2_CAN_MPPT_FIELD_TARGET"]
+        mppt_string_voltage_id(num_arrays - 1) + CAN["CAN_MPPT_FIELD_TARGET"]
     )
-    assert last_id < CAN["SC2_CAN_PT_I_12V_ID"]
+    assert last_id < CAN["CAN_PT_I_12V"]
     ids = {
         mppt_string_voltage_id(i) + field
         for i in range(num_arrays)
-        for field in range(CAN["SC2_CAN_MPPT_STRING_STRIDE"])
+        for field in range(CAN["CAN_MPPT_STRING_STRIDE"])
     }
-    assert len(ids) == num_arrays * CAN["SC2_CAN_MPPT_STRING_STRIDE"]
+    assert len(ids) == num_arrays * CAN["CAN_MPPT_STRING_STRIDE"]
 
 
 def test_pdc_speed_telem_roundtrip(can_pair):
     tx, rx = can_pair
-    send(tx, CAN["SC2_CAN_PDC_MPH_ID"], pack_float(42.0))
+    send(tx, CAN["CAN_PDC_MPH"], pack_float(42.0))
     msg = rx.recv(timeout=0.2)
     assert msg is not None
     assert unpack_float(bytes(msg.data)) == pytest.approx(42.0)
@@ -262,15 +262,15 @@ def test_drive_lights_bps_smoke(can_pair):
     """One pass: throttle + eco + blink/headlight + brake/reverse + BPS fault light."""
     tx, rx = can_pair
 
-    send(tx, CAN["SC2_CAN_STEERING_THROTTLE_ID"], pack_u16(THROTTLE_SENT_MAX // 2))
-    send(tx, CAN["SC2_CAN_STEERING_DRIVE_MODE_ID"], bytes([CAN["SC2_CAN_DRIVE_MODE_ECO"]]))
+    send(tx, CAN["CAN_STEERING_THROTTLE"], pack_u16(THROTTLE_SENT_MAX // 2))
+    send(tx, CAN["CAN_STEERING_DRIVE_MODE"], bytes([CAN["CAN_DRIVE_MODE_ECO"]]))
     send(
         tx,
-        CAN["SC2_CAN_STEERING_DIGITAL_ID"],
+        CAN["CAN_STEERING_DIGITAL"],
         bytes([steering_digital(headlight=1, left=1)]),
     )
-    send(tx, CAN["SC2_CAN_PDC_DIGITAL_ID"], bytes([pdc_digital(direction=1, brake_led=1)]))
-    send(tx, CAN["SC2_CAN_BPS_ELECTRICAL_ID"], bps_electrical_payload(hi_raw=45000, lo_raw=33000))
+    send(tx, CAN["CAN_PDC_DIGITAL"], bytes([pdc_digital(direction=1, brake_led=1)]))
+    send(tx, CAN["CAN_BPS_ELECTRICAL"], bps_electrical_payload(hi_raw=45000, lo_raw=33000))
 
     world = {
         "acc": None,
@@ -285,27 +285,27 @@ def test_drive_lights_bps_smoke(can_pair):
     for msg in _drain(rx, count=10):
         data = bytes(msg.data)
         arb = msg.arbitration_id
-        if arb == CAN["SC2_CAN_STEERING_THROTTLE_ID"] and len(data) >= 2:
+        if arb == CAN["CAN_STEERING_THROTTLE"] and len(data) >= 2:
             world["acc"] = min(unpack_u16(data) / THROTTLE_SENT_MAX, 1.0)
-        elif arb == CAN["SC2_CAN_STEERING_DRIVE_MODE_ID"] and data:
-            world["eco"] = data[0] == CAN["SC2_CAN_DRIVE_MODE_ECO"]
-        elif arb == CAN["SC2_CAN_STEERING_DIGITAL_ID"] and data:
+        elif arb == CAN["CAN_STEERING_DRIVE_MODE"] and data:
+            world["eco"] = data[0] == CAN["CAN_DRIVE_MODE_ECO"]
+        elif arb == CAN["CAN_STEERING_DIGITAL"] and data:
             world["headlight"] = bit_set(data[0], STEERING_BIT_HEADLIGHT)
             world["left"] = bit_set(data[0], STEERING_BIT_LEFT)
-        elif arb == CAN["SC2_CAN_PDC_DIGITAL_ID"] and data:
+        elif arb == CAN["CAN_PDC_DIGITAL"] and data:
             world["reverse"] = bit_set(data[0], PDC_BIT_DIRECTION)
             world["brake"] = bit_set(data[0], PDC_BIT_BRAKE_LED)
-        elif arb == CAN["SC2_CAN_BPS_ELECTRICAL_ID"] and len(data) >= 4:
+        elif arb == CAN["CAN_BPS_ELECTRICAL"] and len(data) >= 4:
             world["fault"] = cell_voltages_fault(
                 decode_cell_voltage_v(data[0:2]),
                 decode_cell_voltage_v(data[2:4]),
             )
 
     if world["fault"]:
-        send(tx, CAN["SC2_CAN_PT_FAULT_STATUS_ID"], bytes([CAN["SC2_CAN_PT_FAULT_MASK"]]))
+        send(tx, CAN["CAN_PT_FAULT_STATUS"], bytes([CAN["CAN_PT_FAULT_MASK"]]))
         status = rx.recv(timeout=0.2)
         assert status is not None
-        assert status.data[0] & CAN["SC2_CAN_PT_FAULT_MASK"]
+        assert status.data[0] & CAN["CAN_PT_FAULT_MASK"]
 
     assert world["acc"] == pytest.approx(0.5, abs=0.02)
     assert world["eco"] is True
