@@ -1,0 +1,15 @@
+###########
+prj.conf
+###########
+#Add these lines in your prj.conf
+
+CONFIG_CAN=y
+CONFIG_CAN_FD_MODE=y #depending on the board
+
+##############
+zephyrcan.cpp
+##############
+#Modify the defines based on CAN chip used
+
+undef USING_CAN_FD
+undef USING_CAN_FD_AND_BITRATE_SWITCHING
