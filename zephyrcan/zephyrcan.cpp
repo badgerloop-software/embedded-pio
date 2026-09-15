@@ -13,13 +13,13 @@
 
 
 ZephyrCAN::ZephyrCAN(const struct device * canDevice, const uint32_t targetIDList[], size_t targetIDListSize, uint32_t frequency) : 
-    _canDevice(canDevice), _canStatus(OK) 
+    _canDevice(canDevice), _canStatus(CAN_OK) 
 {
     if (device_is_ready(_canDevice))
     {
         size_t i = 0;
 
-        while (_canStatus == OK && i < targetIDListSize) {
+        while (_canStatus == CAN_OK && i < targetIDListSize) {
 
             struct can_filter filter = {
                 .id = targetIDList[i],
@@ -35,13 +35,13 @@ ZephyrCAN::ZephyrCAN(const struct device * canDevice, const uint32_t targetIDLis
             }
             else
             {
-                filterIDList.push_back(response);
+                _filterIDList.push_back(response);
             }
 
             i++;
         }
 
-        if (_canStatus == OK && can_set_bitrate(canDevice, frequency) < 0) {
+        if (_canStatus == CAN_OK && can_set_bitrate(canDevice, frequency) < 0) {
             _canStatus = FAILED_TO_SET_CAN_BITRATE;
         }
     }
@@ -52,13 +52,13 @@ ZephyrCAN::ZephyrCAN(const struct device * canDevice, const uint32_t targetIDLis
 }
 
 ZephyrCAN::~ZephyrCAN() {
-    for (auto const id : filterIDList) {
+    for (auto const id : _filterIDList) {
         can_remove_rx_filter(_canDevice, id);
     }
 }
 
-ErrorCode ZephyrCAN::begin() {
-    if (_canStatus == OK && can_start(_canDevice) < 0) {
+CanErrorCode ZephyrCAN::begin() {
+    if (_canStatus == CAN_OK && can_start(_canDevice) < 0) {
         _canStatus = FAILED_TO_START_CAN;
     }
 
@@ -73,7 +73,7 @@ void ZephyrCAN::rxCallbackBridge(const struct device *dev, struct can_frame *fra
     }
 }
 
-ErrorCode ZephyrCAN::canStatus() {
+CanErrorCode ZephyrCAN::canStatus() const{
     return _canStatus;
 }
 
