@@ -1,8 +1,5 @@
 #include "zephyrcan.h"
 
-#undef USING_CAN_FD
-#undef USING_CAN_FD_AND_BITRATE_SWITCHING
-
 #ifdef USING_CAN_FD_AND_BITRATE_SWITCHING
     static const uint8_t _sendMessageFlag = CAN_FRAME_FDF | CAN_FRAME_BRS;
 #elif defined(USING_CAN_FD)
@@ -11,10 +8,16 @@
     static const uint8_t _sendMessageFlag = 0;
 #endif
 
+#define RX_STACK_SIZE 2048
+#define RX_PRIORITY   7
+
+K_THREAD_STACK_DEFINE(zephyrcan_rx_stack, RX_STACK_SIZE);
 
 ZephyrCAN::ZephyrCAN(const struct device * canDevice, const uint32_t targetIDList[], size_t targetIDListSize, uint32_t frequency) : 
-    _canDevice(canDevice), _canStatus(CAN_OK) 
+    _canDevice(canDevice), _canStatus(CAN_OK)
 {
+    k_msgq_init(&_rxMsgQ, (char *)_rxMsgQBuffer, sizeof(struct can_frame), CAN_RX_QUEUE_DEPTH);
+
     if (device_is_ready(_canDevice))
     {
         size_t i = 0;
@@ -27,7 +30,7 @@ ZephyrCAN::ZephyrCAN(const struct device * canDevice, const uint32_t targetIDLis
                 .flags = 0,
             };
 
-            int response = can_add_rx_filter(_canDevice, rxCallbackBridge, this, &filter);
+            int response = can_add_rx_filter_msgq(_canDevice, &_rxMsgQ, &filter);
             
             if(response < 0)
             {
@@ -52,8 +55,22 @@ ZephyrCAN::ZephyrCAN(const struct device * canDevice, const uint32_t targetIDLis
 }
 
 ZephyrCAN::~ZephyrCAN() {
+    k_thread_abort(&_rxTask);
     for (auto const id : _filterIDList) {
         can_remove_rx_filter(_canDevice, id);
+    }
+}
+
+void ZephyrCAN::rxTaskBridge(void *p1, void *p2, void *p3) {
+    static_cast<ZephyrCAN *>(p1)->rxLoop();
+}
+
+void ZephyrCAN::rxLoop() {
+    struct can_frame frame;
+    while (1) {
+        if (k_msgq_get(&_rxMsgQ, &frame, K_FOREVER) == 0) {
+            readHandler(&frame);
+        }
     }
 }
 
@@ -61,16 +78,14 @@ CanErrorCode ZephyrCAN::begin() {
     if (_canStatus == CAN_OK && can_start(_canDevice) < 0) {
         _canStatus = FAILED_TO_START_CAN;
     }
+    else {
+        k_thread_create(&_rxTask, zephyrcan_rx_stack,
+                        K_THREAD_STACK_SIZEOF(zephyrcan_rx_stack),
+                        rxTaskBridge, this, NULL, NULL,
+                        RX_PRIORITY, 0, K_NO_WAIT);
+    }
 
     return _canStatus;
-}
-
-void ZephyrCAN::rxCallbackBridge(const struct device *dev, struct can_frame *frame, void *user_data)
-{
-    ZephyrCAN *instance = static_cast<ZephyrCAN*>(user_data);
-    if (instance != nullptr) {
-        instance->readHandler(frame);
-    }
 }
 
 CanErrorCode ZephyrCAN::canStatus() const{

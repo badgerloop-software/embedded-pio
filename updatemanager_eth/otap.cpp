@@ -1,5 +1,5 @@
 #include "otap.h"
-#include <cstdint>
+#include <stdint.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(OTAP_LOG, LOG_LEVEL_INF);

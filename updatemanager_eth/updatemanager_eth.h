@@ -1,5 +1,5 @@
-#ifndef ZEPHYRUPDATEETHERNET_H
-#define ZEPHYRUPDATEETHERNET_H
+#ifndef UPDATEMANAGERETHERNET_H
+#define UPDATEMANAGERETHERNET_H
 
 void acceptEthernetPayload();
 void stopEthernetPayload();
