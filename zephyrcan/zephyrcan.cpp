@@ -96,7 +96,6 @@ int ZephyrCAN::sendMessage(uint32_t messageID, const uint8_t * data, uint8_t len
 {
     struct can_frame frame;
 
-
     if (length > sizeof(frame.data))
     {
         length = sizeof(frame.data);
