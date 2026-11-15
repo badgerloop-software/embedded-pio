@@ -2,12 +2,12 @@
 #include <stdint.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(OTAP_LOG, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(FLASHIMAGE_LOG, LOG_LEVEL_INF);
 
 
-struct flash_img_context ctx;
+static struct flash_img_context ctx;
 
-void initSwapping()
+void initSwappingCan()
 {
     int err;
 
@@ -28,7 +28,7 @@ void initSwapping()
 }
 
 
-int writeToBackup(uint8_t * new_data,size_t	len, bool flush){
+int writeToBackupCan(uint8_t * new_data,size_t	len, bool flush){
     
     size_t bytes_written = flash_img_bytes_written(&ctx);
 
@@ -41,7 +41,7 @@ int writeToBackup(uint8_t * new_data,size_t	len, bool flush){
 }
 
 // TODO: this should have a return value to indicate success or failure
-void setWriteToBackupDone(){
+void setWriteToBackupDoneCan(){
 
    int err = boot_request_upgrade(BOOT_UPGRADE_TEST);
 

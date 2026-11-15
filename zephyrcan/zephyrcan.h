@@ -18,6 +18,7 @@ typedef enum {
     FAILED_TO_START_CAN = 2,
     FAILED_TO_SET_CAN_BITRATE = 3,
     DEVICE_NOT_READY = 4,
+    FAILED_TO_ALLOCATE_RX_STACK = 5,
 } CanErrorCode;
 
 class ZephyrCAN {
@@ -41,6 +42,7 @@ class ZephyrCAN {
         struct k_msgq _rxMsgQ;
         struct can_frame _rxMsgQBuffer[CAN_RX_QUEUE_DEPTH];
         struct k_thread _rxTask;
+        int _rxStackIndex;
 };
 
 #endif

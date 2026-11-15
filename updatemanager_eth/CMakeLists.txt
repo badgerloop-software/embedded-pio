@@ -3,7 +3,7 @@ add_library(updatemanager_eth STATIC
     otap.cpp
 )
 
-target_link_libraries(updatemanager_eth PRIVATE zephyr_interface zephyrethernet coordinator)
+target_link_libraries(updatemanager_eth PRIVATE zephyr_interface zephyrethernet PUBLIC coordinator)
 
 add_dependencies(updatemanager_eth zephyr_generated_headers)
 

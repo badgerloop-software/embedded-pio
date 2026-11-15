@@ -3,7 +3,6 @@
 
 #include "zephyrcan.h"
 
-#define UPDATE_ID   0x00
 #define ACK_ID      0x01
 #define UPDATE_QUEUE_DEPTH  8
 
