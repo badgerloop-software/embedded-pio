@@ -4,7 +4,7 @@ add_library(updatemanager_can STATIC
     updcan.cpp
 )
 
-target_link_libraries(updatemanager_can PRIVATE zephyr_interface zephyrcan)
+target_link_libraries(updatemanager_can PRIVATE zephyr_interface zephyrcan coordinator)
 
 add_dependencies(updatemanager_can zephyr_generated_headers)
 

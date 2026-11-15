@@ -7,6 +7,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
 #include "updcan.h"
+#include "coordinator.h"
 
 LOG_MODULE_REGISTER(canupd, LOG_LEVEL_INF);
 
@@ -93,19 +94,24 @@ void canUpdateTask(void * p1, void * p2, void * p3) {
             }
             case SENDING_FILE: {
                 size_t toWrite = MIN(dataLen, remaining);
-                memcpy(dataBuffer[dataBufferSize], data, toWrite);
+                memcpy(dataBuffer + dataBufferSize, data, toWrite);
                 dataBufferSize += toWrite;
 
                 if (dataBufferSize >= DATA_ALIGNMENT_BYTES || dataBufferSize == remaining) 
                 {
-                    if (writeToBackup(data, toWrite, false) < 0) {
+                    if (writeToBackup(dataBuffer, toWrite, false) < 0) {
                         LOG_ERR("writeToBackup failed at %u bytes", (unsigned)(imageLen - remaining));
                         updateCanBus.sendACK(ACK_ERR);
                     } else {
                         remaining -= dataBufferSize;
                         updateCanBus.sendACK(ACK_OK);
+                        dataBufferSize = 0;
                     }
                 }
+                else {
+                    updateCanBus.sendACK(ACK_OK);
+                }
+                
                 break;
             }
             case FILE_SENT: {
@@ -188,19 +194,19 @@ static int waitForAck(UpdCAN & sendBus) {
     return (ackFrame.data[0] == ACK_OK) ? 0 : -1;
 }
 
-void canUpdateSendTask(void * p1, void * p2, void * p3) {
+static int sendPayload() {
     const struct flash_area * payloadArea;
     struct payload_meta meta;
 
     if (flash_area_open(FIXED_PARTITION_ID(payload_partition), &payloadArea) != 0) {
         LOG_ERR("Failed to open payload partition");
-        return;
+        return -1;
     }
 
     if (verifyPayload(payloadArea, &meta) != 0) {
         LOG_ERR("Payload slot has no valid image");
         flash_area_close(payloadArea);
-        return;
+        return -1;
     }
 
     UpdCAN sendBus(canDev, ACK_ID_LIST, sizeof(ACK_ID_LIST)/sizeof(ACK_ID_LIST[0]), CAN_DEVICE_FREQUENCY);
@@ -208,13 +214,13 @@ void canUpdateSendTask(void * p1, void * p2, void * p3) {
     if (sendBus.begin() != CAN_OK) {
         LOG_ERR("CAN init failed: %d", sendBus.canStatus());
         flash_area_close(payloadArea);
-        return;
+        return -1;
     }
 
     if (sendCommandFrame(sendBus, REQUEST_START_UPDATE, NULL, 0) < 0 || waitForAck(sendBus) != 0) {
         LOG_ERR("Start handshake failed");
         flash_area_close(payloadArea);
-        return;
+        return -1;
     }
 
     uint8_t lengthBuffer[4];
@@ -223,7 +229,7 @@ void canUpdateSendTask(void * p1, void * p2, void * p3) {
     if (sendCommandFrame(sendBus, FILE_SIZE, lengthBuffer, sizeof(lengthBuffer)) < 0 || waitForAck(sendBus) != 0) {
         LOG_ERR("File size handshake failed");
         flash_area_close(payloadArea);
-        return;
+        return -1;
     }
 
     uint8_t chunk[BUFFER_SIZE];
@@ -236,13 +242,13 @@ void canUpdateSendTask(void * p1, void * p2, void * p3) {
         if (flash_area_read(payloadArea, offset, chunk, toSend) != 0) {
             LOG_ERR("Payload read failed at %u bytes", (unsigned)(meta.length - remaining));
             flash_area_close(payloadArea);
-            return;
+            return -1;
         }
 
         if (sendCommandFrame(sendBus, SENDING_FILE, chunk, toSend) < 0 || waitForAck(sendBus) != 0) {
             LOG_ERR("Send failed at %u bytes", (unsigned)(meta.length - remaining));
             flash_area_close(payloadArea);
-            return;
+            return -1;
         }
 
         offset += toSend;
@@ -252,10 +258,19 @@ void canUpdateSendTask(void * p1, void * p2, void * p3) {
     if (sendCommandFrame(sendBus, FILE_SENT, NULL, 0) < 0 || waitForAck(sendBus) != 0) {
         LOG_ERR("Final handshake failed");
         flash_area_close(payloadArea);
-        return;
+        return -1;
     }
 
     LOG_INF("Payload sent over CAN (%u bytes)", (unsigned)meta.length);
     flash_area_close(payloadArea);
+    return 0;
+}
+
+void canUpdateSendTask(void * p1, void * p2, void * p3) {
+    while (1) {
+        waitCanTrigger();
+        sendPayload();
+        canSendComplete();
+    }
 }
 #endif

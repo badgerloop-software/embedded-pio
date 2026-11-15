@@ -5,6 +5,8 @@
 #include <otap.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
+#include <zephyr/storage/flash_map.h>
+#include "coordinator.h"
 
 LOG_MODULE_REGISTER(ethupd, LOG_LEVEL_INF);
 
@@ -48,6 +50,11 @@ void ethernetUpdateTask(void * p1, void * p2, void * p3) {
 
     ZephyrEthernet ze(PC_IP);
 
+    
+#if !FIXED_PARTITION_EXISTS(payload_partition)
+    LOG_WRN("payload_partition not defined, this will cause error in updating other boards");
+#endif
+
     if (ze.initEthernetDevice(true) != ETH_OK) {
         LOG_ERR("Etherenet init failed: %d", ze.ethernetStatus());
         return;
@@ -75,6 +82,11 @@ void ethernetUpdateTask(void * p1, void * p2, void * p3) {
 
         switch (command) {
             case REQUEST_BLOCK_SIZE: {
+                if (canTransferActive()) {
+                    LOG_WRN("Update denied, CAN transfer in progress");
+                    ze.sendPacket(&ACK_ERR, 1);
+                    break;
+                }
                 uint8_t reply[4];
                 sys_put_le32((uint32_t)BUFFER_SIZE, reply);
                 ze.sendPacket(reply, sizeof(reply));
@@ -85,6 +97,7 @@ void ethernetUpdateTask(void * p1, void * p2, void * p3) {
                     imageLen = sys_get_le32(data);
                     remaining = imageLen;
                     LOG_INF("Update request, image %u bytes", (unsigned)imageLen);
+                    ethUpdateStarted();
                     initSwapping();
                     ze.sendPacket(&ACK_OK, 1);
                 }
@@ -103,12 +116,19 @@ void ethernetUpdateTask(void * p1, void * p2, void * p3) {
                 break;
             }
             case FILE_SENT: {
-                LOG_INF("Image received (%u bytes), swapping", (unsigned)imageLen);
                 writeToBackup(NULL, 0, true);
+                ethUpdateFinished();
+#if FIXED_PARTITION_EXISTS(payload_partition)
+                LOG_INF("Payload received (%u bytes), forwarding over CAN", (unsigned)imageLen);
+                ze.sendPacket(&ACK_OK, 1);
+                signalPayloadReady();
+#else
+                LOG_INF("Image received (%u bytes), swapping", (unsigned)imageLen);
                 setWriteToBackupDone();
                 ze.sendPacket(&ACK_OK, 1);
                 k_msleep(1000);
                 sys_reboot(SYS_REBOOT_COLD);
+#endif
                 break;
             }
             default:
