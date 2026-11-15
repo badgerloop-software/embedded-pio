@@ -49,7 +49,7 @@ void stopCanPayload() {
 
 void canUpdateTask(void * p1, void * p2, void * p3) {
     if (p1 == NULL) return;
-    
+
     board_id_t boardId = (board_id_t)(uintptr_t)p1;
 
     if (boardId == CAN_BREAKOUT_BOARD || boardId >= BOARD_COUNT) {
@@ -281,11 +281,8 @@ static int sendPayload(board_id_t boardId) {
 void canUpdateSendTask(void * p1, void * p2, void * p3) {
     while (1) {
         board_id_t boardId = waitCanTrigger();
-
         if (sendPayload(boardId) == 0) {
-            LOG_INF("CAN update done, rebooting");
-            k_msleep(1000);
-            sys_reboot(SYS_REBOOT_COLD);
+            LOG_INF("CAN update done, target board rebooting");
         }
 
         canSendComplete();
