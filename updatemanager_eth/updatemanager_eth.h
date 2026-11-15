@@ -1,6 +1,8 @@
 #ifndef UPDATEMANAGERETHERNET_H
 #define UPDATEMANAGERETHERNET_H
 
+#include <stdint.h>
+
 void acceptEthernetPayload();
 void stopEthernetPayload();
 

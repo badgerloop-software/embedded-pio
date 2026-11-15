@@ -24,6 +24,12 @@ typedef enum {
     FILE_SENT = 3,
 } command_t;
 
+struct payload_meta {
+    uint32_t magic;
+    uint32_t length;
+    uint32_t crc32;
+};
+
 atomic_t ethUpdateFlag = ATOMIC_INIT(0);
 
 void acceptEthernetPayload() {
