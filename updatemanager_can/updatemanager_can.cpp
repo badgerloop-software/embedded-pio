@@ -137,7 +137,7 @@ void canUpdateTask(void * p1, void * p2, void * p3) {
     }
 }
 
-#if FIXED_PARTITION_EXISTS(payload_partition)
+#if PARTITION_EXISTS(payload_partition)
 
 static const uint32_t ACK_ID_LIST[] = {ACK_ID};
 static const int ACK_TIMEOUT_MS = 1000;
@@ -210,7 +210,7 @@ static int sendPayload(board_id_t boardId) {
 
     uint32_t targetID = BOARD_CAN_ID_LIST[boardId];
 
-    if (flash_area_open(FIXED_PARTITION_ID(payload_partition), &payloadArea) != 0) {
+    if (flash_area_open(PARTITION_ID(payload_partition), &payloadArea) != 0) {
         LOG_ERR("Failed to open payload partition");
         return -1;
     }
@@ -279,6 +279,7 @@ static int sendPayload(board_id_t boardId) {
 }
 
 void canUpdateSendTask(void * p1, void * p2, void * p3) {
+    LOG_INF("Board configured for update over can forwarding");
     while (1) {
         board_id_t boardId = waitCanTrigger();
         if (sendPayload(boardId) == 0) {

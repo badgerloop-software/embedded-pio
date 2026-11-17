@@ -45,7 +45,7 @@ void ethernetUpdateTask(void * p1, void * p2, void * p3) {
 
     ZephyrEthernet ze(PC_IP);
     
-#if !FIXED_PARTITION_EXISTS(payload_partition)
+#if !PARTITION_EXISTS(payload_partition)
     LOG_WRN("payload_partition not defined, this will cause error in updating other boards");
 #endif
 

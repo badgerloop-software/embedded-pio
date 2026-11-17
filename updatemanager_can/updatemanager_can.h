@@ -8,7 +8,7 @@ void stopCanPayload();
 
 void canUpdateTask(void * p1, void * p2, void * p3);
 
-#if FIXED_PARTITION_EXISTS(payload_partition)
+#if PARTITION_EXISTS(payload_partition)
 void canUpdateSendTask(void * p1, void * p2, void * p3);
 #endif
 

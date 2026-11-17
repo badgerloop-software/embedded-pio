@@ -20,7 +20,7 @@ static uint32_t payloadCrc = 0;
 static int initPayloadSlot()
 {
     int err;
-    uint8_t areaID = FIXED_PARTITION_ID(payload_partition);
+    uint8_t areaID = PARTITION_ID(payload_partition);
 
     err = boot_erase_img_bank(areaID);
     if (err) {

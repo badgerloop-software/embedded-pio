@@ -21,6 +21,8 @@ typedef enum {
     FAILED_TO_ALLOCATE_RX_STACK = 5,
 } CanErrorCode;
 
+static const uint32_t CAN_FREQUENCY = 250000;
+
 class ZephyrCAN {
     public:
         ZephyrCAN(const struct device *canDevice, const uint32_t targetIDList[], size_t targetIDListSize, uint32_t frequency);
