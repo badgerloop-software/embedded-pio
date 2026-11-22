@@ -85,7 +85,8 @@ void canUpdateTask(void * p1, void * p2, void * p3) {
 
         uint8_t command = canFrame.data[0];
         uint8_t * data = canFrame.data + COMMAND_SIZE;
-        size_t dataLen = BUFFER_SIZE;
+        size_t frameLen = can_dlc_to_bytes(canFrame.dlc);
+        size_t dataLen = (frameLen > COMMAND_SIZE) ? frameLen - COMMAND_SIZE : 0;
 
         switch (command) {
             case REQUEST_START_UPDATE: {
@@ -95,6 +96,7 @@ void canUpdateTask(void * p1, void * p2, void * p3) {
             case FILE_SIZE: {
                 imageLen = sys_get_le32(data);
                 remaining = imageLen;
+                dataBufferSize = 0;
                 LOG_INF("Update request, image %u bytes", (unsigned)imageLen);
                 initSwappingCan();
                 updateCanBus.sendACK(ACK_OK);
@@ -104,14 +106,14 @@ void canUpdateTask(void * p1, void * p2, void * p3) {
                 size_t toWrite = MIN(dataLen, remaining);
                 memcpy(dataBuffer + dataBufferSize, data, toWrite);
                 dataBufferSize += toWrite;
+                remaining -= toWrite;
 
-                if (dataBufferSize >= DATA_ALIGNMENT_BYTES || dataBufferSize == remaining) 
+                if (dataBufferSize >= DATA_ALIGNMENT_BYTES || remaining == 0) 
                 {
                     if (writeToBackupCan(dataBuffer, dataBufferSize, false) < 0) {
                         LOG_ERR("writeToBackupCan failed at %u bytes", (unsigned)(imageLen - remaining));
                         updateCanBus.sendACK(ACK_ERR);
                     } else {
-                        remaining -= dataBufferSize;
                         updateCanBus.sendACK(ACK_OK);
                         dataBufferSize = 0;
                     }
@@ -123,6 +125,11 @@ void canUpdateTask(void * p1, void * p2, void * p3) {
                 break;
             }
             case FILE_SENT: {
+                if (remaining != 0) {
+                    LOG_ERR("Image incomplete, %u bytes missing", (unsigned)remaining);
+                    updateCanBus.sendACK(ACK_ERR);
+                    break;
+                }
                 LOG_INF("Image received (%u bytes), swapping", (unsigned)imageLen);
                 writeToBackupCan(NULL, 0, true);
                 setWriteToBackupDoneCan();
@@ -141,6 +148,7 @@ void canUpdateTask(void * p1, void * p2, void * p3) {
 
 static const uint32_t ACK_ID_LIST[] = {ACK_ID};
 static const int ACK_TIMEOUT_MS = 1000;
+static const int ERASE_ACK_TIMEOUT_MS = 15000;
 static const int CRC_CHUNK_SIZE = 256;
 
 static int verifyPayload(const struct flash_area * payloadArea, struct payload_meta * meta) {
@@ -189,10 +197,10 @@ static int sendCommandFrame(UpdCAN & sendBus, uint32_t targetID, uint8_t command
     return sendBus.sendMessage(targetID, frameBuffer, COMMAND_SIZE + length);
 }
 
-static int waitForAck(UpdCAN & sendBus) {
+static int waitForAck(UpdCAN & sendBus, int timeoutMs) {
     struct can_frame ackFrame;
 
-    if (sendBus.readNextMessage(&ackFrame, K_MSEC(ACK_TIMEOUT_MS)) != 0) {
+    if (sendBus.readNextMessage(&ackFrame, K_MSEC(timeoutMs)) != 0) {
         return -1;
     }
 
@@ -229,7 +237,7 @@ static int sendPayload(board_id_t boardId) {
         return -1;
     }
 
-    if (sendCommandFrame(sendBus, targetID, REQUEST_START_UPDATE, NULL, 0) < 0 || waitForAck(sendBus) != 0) {
+    if (sendCommandFrame(sendBus, targetID, REQUEST_START_UPDATE, NULL, 0) < 0 || waitForAck(sendBus, ACK_TIMEOUT_MS) != 0) {
         LOG_ERR("Start handshake failed");
         flash_area_close(payloadArea);
         return -1;
@@ -238,7 +246,7 @@ static int sendPayload(board_id_t boardId) {
     uint8_t lengthBuffer[4];
     sys_put_le32(meta.length, lengthBuffer);
 
-    if (sendCommandFrame(sendBus, targetID, FILE_SIZE, lengthBuffer, sizeof(lengthBuffer)) < 0 || waitForAck(sendBus) != 0) {
+    if (sendCommandFrame(sendBus, targetID, FILE_SIZE, lengthBuffer, sizeof(lengthBuffer)) < 0 || waitForAck(sendBus, ERASE_ACK_TIMEOUT_MS) != 0) {
         LOG_ERR("File size handshake failed");
         flash_area_close(payloadArea);
         return -1;
@@ -257,7 +265,7 @@ static int sendPayload(board_id_t boardId) {
             return -1;
         }
 
-        if (sendCommandFrame(sendBus, targetID, SENDING_FILE, chunk, toSend) < 0 || waitForAck(sendBus) != 0) {
+        if (sendCommandFrame(sendBus, targetID, SENDING_FILE, chunk, toSend) < 0 || waitForAck(sendBus, ACK_TIMEOUT_MS) != 0) {
             LOG_ERR("Send failed at %u bytes", (unsigned)(meta.length - remaining));
             flash_area_close(payloadArea);
             return -1;
@@ -267,7 +275,7 @@ static int sendPayload(board_id_t boardId) {
         remaining -= toSend;
     }
 
-    if (sendCommandFrame(sendBus, targetID, FILE_SENT, NULL, 0) < 0 || waitForAck(sendBus) != 0) {
+    if (sendCommandFrame(sendBus, targetID, FILE_SENT, NULL, 0) < 0 || waitForAck(sendBus, ACK_TIMEOUT_MS) != 0) {
         LOG_ERR("Final handshake failed");
         flash_area_close(payloadArea);
         return -1;
