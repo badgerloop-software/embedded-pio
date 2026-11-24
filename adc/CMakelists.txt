@@ -2,8 +2,6 @@ add_library(adc STATIC
     adc.cpp
 )
 
-target_link_libraries(adc PRIVATE adc)
-
 target_include_directories(adc
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}

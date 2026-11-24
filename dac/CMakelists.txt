@@ -2,8 +2,6 @@ add_library(dac STATIC
     dac.cpp
 )
 
-target_link_libraries(dac PRIVATE dac)
-
 target_include_directories(dac
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}

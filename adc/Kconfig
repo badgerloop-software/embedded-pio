@@ -1,0 +1,7 @@
+config SUBMOD_ADC_HAL
+	bool "Enable STM32 HAL ADC for adc submodule"
+	default y
+	select USE_STM32_HAL_ADC
+	select USE_STM32_HAL_ADC_EX
+    select USE_STM32_HAL_DMA
+	select USE_STM32_HAL_DMA_EX

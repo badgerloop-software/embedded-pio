@@ -1,0 +1,7 @@
+config SUBMOD_DAC_HAL
+	bool "Enable STM32 HAL DAC for dac submodule"
+	default y
+	select USE_STM32_HAL_DAC
+	select USE_STM32_HAL_DAC_EX
+    select USE_STM32_HAL_DMA
+	select USE_STM32_HAL_DMA_EX
