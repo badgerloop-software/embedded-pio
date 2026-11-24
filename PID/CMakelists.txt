@@ -1,0 +1,10 @@
+add_library(pid STATIC
+    pid.cpp
+)
+
+target_link_libraries(pid PRIVATE zephyr_interface)
+
+target_include_directories(pid
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
