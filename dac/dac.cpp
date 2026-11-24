@@ -1,4 +1,13 @@
 #include "dac.h"
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(dac_submodule, LOG_LEVEL_INF);
+
+static void _Error_Handler(const char * file, int line) {
+    LOG_ERR("DAC HAL call failed at %s:%d", file, line);
+    k_panic();
+}
 
 DAC_HandleTypeDef dacHandle;
 DAC_ChannelConfTypeDef dacConfig;
@@ -13,9 +22,9 @@ void initDAC(DAC_TypeDef* instance, uint32_t* channels, uint8_t num_channels) {
 
     for (int i = 0; i < num_channels; i++) {
         if (HAL_DAC_ConfigChannel(&dacHandle, &dacConfig, channels[i]) != HAL_OK) {
-            printf("channel %d not initialized\n", i);
+            LOG_ERR("channel %d not initialized\n", i);
         } else {
-            printf("channel %d working\n", i);
+            LOG_INF("channel %d working\n", i);
         }
         HAL_DAC_Start(&dacHandle, channels[i]);
     }

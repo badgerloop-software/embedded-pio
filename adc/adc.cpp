@@ -1,4 +1,13 @@
 #include "adc.h"
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(adc_submodule, LOG_LEVEL_INF);
+
+static void Error_Handler() {
+    LOG_ERR("ADC HAL call failed");
+    k_panic();
+}
 
 ADC_HandleTypeDef adcHandle;
 ADC_ChannelConfTypeDef adcConfig;
