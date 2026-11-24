@@ -8,8 +8,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
-void initSwapping();
-int writeToBackup(uint8_t * new_data,size_t	len, bool flush);
+#include "coordinator.h"
+
+int initSwapping(board_id_t boardId);
+int writeToBackup(uint8_t * newData, size_t	len, bool flush);
 void setWriteToBackupDone();
+int setWriteToPayloadDone();
 
 #endif
