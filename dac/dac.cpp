@@ -3,7 +3,6 @@
 DAC_HandleTypeDef dacHandle;
 DAC_ChannelConfTypeDef dacConfig;
 
-
 void initDAC(DAC_TypeDef* instance, uint32_t* channels, uint8_t num_channels) {
     dacHandle.Instance = instance;
     if (HAL_DAC_Init(&dacHandle) != HAL_OK) {

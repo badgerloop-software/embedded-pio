@@ -1,6 +1,8 @@
 #ifndef __DAC_H__
 #define __DAC_H__
-#include <Arduino.h>
+
+#include <zephyr/kernel.h>
+#include <soc.h>
 
 #define DAC_MAX_VALUE 4096 // because we use 12 bit DAC
 

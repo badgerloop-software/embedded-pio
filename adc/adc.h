@@ -1,6 +1,8 @@
 #ifndef __ADC_H__
 #define __ADC_H__
-#include <Arduino.h>
+
+#include <zephyr/kernel.h>
+#include <soc.h>
 
 #define ADC_MAX_VALUE 4096 // because we use 12 bit ADC
 
